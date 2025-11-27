@@ -1,0 +1,119 @@
+import pygame 
+import random 
+
+pygame.init() 
+BLANCO = (255, 255, 255) 
+NEGRO = (0, 0, 0) 
+VERDE = (0, 150, 0)
+ VERDE_HOVER = (0, 200, 0) 
+ROJO = (150, 0, 0) 
+ROJO_HOVER = (200, 0, 0)
+
+ ANCHO, ALTO = 800, 600
+ pantalla = pygame.display.set_mode((ANCHO, ALTO)) 
+pygame.display.set_caption("Juego del Dado") 
+
+fuente = pygame.font.Font(None, 36) 
+
+reloj = pygame.time.Clock() 
+
+turno = "jugador"
+ dado_animando = False
+ tiempo_animacion = 0 
+jugador_suma = 0 resultado = "" 
+ronda = 1 
+
+def dibujar_boton(texto, x, y, ancho, alto, color_normal, color_hover):
+ mouse_x, mouse_y = pygame.mouse.get_pos() 
+
+if x <= mouse_x <= x + ancho and y <= mouse_y <= y + alto:
+ pygame.draw.rect(pantalla, color_hover, (x, y, ancho, alto))
+ else: 
+pygame.draw.rect(pantalla, color_normal, (x, y, ancho, alto))
+
+ texto_render = fuente.render(texto, True, BLANCO)
+ pantalla.blit(
+ texto_render, (x + (ancho - texto_render.get_width()) // 2,
+ y + (alto - texto_render.get_height()) // 2) 
+) 
+
+def dibujar_juego():
+ pantalla.fill(NEGRO) 
+
+if turno == "jugador" and not dado_animando:
+ instruccion = fuente.render("Haz clic en 'TIRAR DADO' o 'PLANTARSE'", True, BLANCO)
+ pantalla.blit(instruccion, (ANCHO//2 - instruccion.get_width()//2, 40))
+
+
+ ronda_txt = fuente.render(f"Ronda: {ronda}", True, BLANCO)
+ pantalla.blit(ronda_txt, (20, 20)) 
+
+
+if turno == "jugador" and not dado_animando:
+ dibujar_boton("TIRAR DADO", 400, 100, 170, 50, VERDE, VERDE_HOVER)
+ dibujar_boton("PLANTARSE", 400, 170, 170, 50, ROJO, ROJO_HOVER)
+
+
+ if turno == "fin":
+ texto_r = fuente.render(resultado, True, BLANCO)
+ pantalla.blit(texto_r, (ANCHO//2 - texto_r.get_width()//2, 400))
+
+ def manejar_eventos():
+ global turno, ronda 
+for evento in pygame.event.get():
+ if evento.type == pygame.QUIT:
+ return False
+ if evento.type == pygame.MOUSEBUTTONDOWN:
+ x, y = evento.pos
+ if turno == "jugador" and not dado_animando: 
+if 400 <= x <= 570 and 100 <= y <= 150:
+ turno_jugador()
+ elif 400 <= x <= 570 and 170 <= y <= 220:
+ turno = "cpu"
+ if turno == "fin":
+ reiniciar_juego() 
+ronda += 1 # Nueva ronda 
+return True 
+
+
+def actualizar():
+ global dado_animando, tiempo_animacion, turno 
+tiempo_actual = pygame.time.get_ticks()
+if dado_animando and tiempo_actual - tiempo_animacion > 800:
+ dado_animando = False 
+if jugador_suma >= 10: 
+turno = "cpu"
+ if turno == "cpu": 
+turno_cpu() 
+def turno_jugador(): 
+global dado_animando, tiempo_animacion, jugador_suma
+ dado_animando = True 
+tiempo_animacion = pygame.time.get_ticks() 
+jugador_suma += random.randint(1, 6)
+
+ def turno_cpu():
+ global turno, resultado
+ cpu_suma = random.randint(5, 15) 
+if jugador_suma > cpu_suma and jugador_suma <= 21:
+ resultado = "¡Ganaste!"
+ elif jugador_suma == cpu_suma:
+ resultado = "Empate" 
+else: 
+resultado = "Perdiste"
+ turno = "fin"
+
+ def reiniciar_juego():
+ global turno, jugador_suma, resultado 
+turno = "jugador" 
+jugador_suma = 0
+ resultado = "" 
+
+corriendo = True
+ while corriendo:
+ corriendo = manejar_eventos()
+ actualizar()
+ dibujar_juego() 
+pygame.display.flip() 
+reloj.tick(30)
+
+ pygame.quit()
